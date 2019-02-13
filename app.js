@@ -5,7 +5,7 @@ let sortingVisualization = function(p) {
     
     let marginx = 40;
     let marginy = 60;
-    let w = 5;
+    let w = 2;
     let space = 0;
 
     let maxH = canvasH - marginy * 2;
@@ -15,10 +15,8 @@ let sortingVisualization = function(p) {
     let defaultRandomArray = [];
     let toSortArray = [];
 
-    let bubbleTrackerOuter = 1;
-    let bubbleTrackerInnder = -1;
-
     let sorted = false;
+    let speed = 50;
 
     p.setup = function() {
         p.createCanvas(canvasW, canvasH);
@@ -30,11 +28,10 @@ let sortingVisualization = function(p) {
     p.draw = function() {
         p.background(255);
 
-        if (bubbleTrackerOuter != 1){
-            for (let i = 0; i < 30; i++)
-                p.bubbleSort();
+        if (!sorted) {
+            p.bubbleSort().next();  
         }
-
+        
         for (let i = 0; i < toSortArray.length; i++) {
             toSortArray[i].draw(100);
         }
@@ -42,10 +39,7 @@ let sortingVisualization = function(p) {
 
     p.mouseClicked = function() {
         p.reset();
-        bubbleTrackerOuter = toSortArray.length - 1;
-        bubbleTrackerInnder = 0;
-        // toSortArray = p.bubbleSort(toSortArray);
-        // p.rePosition(toSortArray, marginx, space);
+        
     };
 
     p.createRandomRecArray = function(count, startx, space) {
@@ -64,47 +58,33 @@ let sortingVisualization = function(p) {
 
     p.reset = function() {
         toSortArray = defaultRandomArray.slice();
+        sorted = false;
     };
 
     p.rePosition = function() {
-        for (let i = 0; i < toSortArray.length; i++) {
-            toSortArray[i].x = marginx + w/2 + i * (w + space);
+        for (let j = 0; j < toSortArray.length; j++) {
+            toSortArray[j].x = marginx + w/2 + j * (w + space);
         }
     };
 
-    p.bubbleSort = function() {
-               
-        // while (currEndIndex != 1) {
-        //     for (let i = 0; i < array.length - 1; i++) {
-        //         if (array[i].h > array[i + 1].h) {
-        //             p.swap(array, i, i + 1);
-        //             swapped = true;
-        //         }
-        //     }
-        //let swapped = false;
-
-        if (bubbleTrackerOuter != 1) {
-            
-            if (bubbleTrackerInnder < toSortArray.length - 1) {
-                if (toSortArray[bubbleTrackerInnder].h > toSortArray[bubbleTrackerInnder+1].h){
-                    p.swap(toSortArray, bubbleTrackerInnder, bubbleTrackerInnder+1);
+    p.bubbleSort = function*() {     
+        let swapped;
+        do {
+            swapped = false;
+            for (let i = 0; i < toSortArray.length - 1; i++) {
+                if (toSortArray[i].h > toSortArray[i+1].h) {
+                    p.swap(toSortArray, i, i+1);
                     swapped = true;
-                    console.log("swapped");
+                    
+                    if (i % speed == 0){
+                        p.rePosition();
+                        yield i;
+                    }
                 }
             }
-
-            bubbleTrackerInnder++;
-            
-            if (bubbleTrackerInnder == toSortArray.length - 1){
-                bubbleTrackerOuter--;
-                bubbleTrackerInnder = 0;
-            }
-        }
-
-        // if (!swapped)
-        //     bubbleTrackerOuter = 1;
-
+        } while (swapped);
         p.rePosition();
+        sorted = true;
     };
 
 };
