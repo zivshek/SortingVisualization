@@ -1,4 +1,3 @@
-
 class Rec {
 
     constructor(w, maxh, x, bottomy, p5) {
