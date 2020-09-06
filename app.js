@@ -1,75 +1,109 @@
-let canvasW = 800;
-let canvasH = 800;
+const canvasW = 800;
+const canvasH = 600;
 
 let sortingVisualization = function (p) {
 
-    let marginx = 40;
-    let marginy = 260;
-    let w = 20;
-    let space = 0;
+    let originalArray, toSortArray, rectWidth
+    let sorter = null;
+    const arraySize = 100;
 
-    let maxH = canvasH - marginy * 2;
-    let bottomY = canvasH - marginy;
-    let totalRecs = Math.floor((canvasW - marginx * 2) / (w + space));
-
-    let defaultRandomArray = [];
-    let toSortArray = [];
-
-    let sorted = false;
-    let sorting = false;
-    let speed = 50;
-
-    let buttonTexts = ["Bubble sort", "Selection sort", "Insertion sort", "Merge sort", "Quick sort", "Heap sort"];
+    const buttonTexts = ["Bubble sort", "Selection sort", "Insertion sort", "Merge sort", "Quick sort", "Heap sort", "Reset", "Shuffle"];
+    const resetButtonIndex = buttonTexts.length - 2;
+    const shuffleButtonIndex = buttonTexts.length - 1;
     let buttons = [];
-    let buttonW = 100;
-    let buttonH = 30;
-    let buttonSpacing = 10;
-    let buttonStartX = marginx + buttonW / 2;
-    let buttonStartY = bottomY + buttonSpacing + buttonH / 2;
+    let sorters = [];
+    const buttonW = 150;
+    const buttonH = 30;
+    const buttonSpacing = 10;
+    const maxButtonsPerLine = Math.floor((canvasW - 2 * buttonSpacing) / buttonW);
+    const buttonStartX = buttonW / 2;
+    const buttonStartY = 2 * buttonSpacing + buttonH / 2;
 
-    let currentSortingFunc;
-    let sortingFuncs = [];
+    let speedSlider;
+    const sliderX = canvasW - 130;
+    const sliderY = (buttonH + buttonSpacing) * 2;
 
     p.setup = function () {
         p.createCanvas(canvasW, canvasH);
+        originalArray = Array.from(Array(arraySize), (_, i) => i);
+        p.shuffle(originalArray);
+        p.reset();
+        rectWidth = canvasW / originalArray.length;
 
-        defaultRandomArray = p.createRandomRecArray(totalRecs, marginx, space);
-        toSortArray = defaultRandomArray.slice();
+        speedSlider = p.createSlider(1, 50, 1, 1);
 
-        sortingFuncs.push(p.bubbleSort);
-        sortingFuncs.push(p.selectionSort);
+        speedSlider.position(sliderX, sliderY);
+        console.log(sliderX);
+        speedSlider.style('width', '120px');
 
+        sorters.push(p.bubbleSort);
+
+        let j = 0;
+        let k = 0;
         for (let i = 0; i < buttonTexts.length; i++) {
-            buttons.push(new CustomButton(buttonStartX + i * (buttonW + buttonSpacing), buttonStartY, buttonW, buttonH, buttonTexts[i], i, p));
+            buttons.push(
+                new CustomButton(
+                    buttonStartX + j * (buttonW + buttonSpacing),
+                    buttonStartY + k * (buttonH + buttonSpacing),
+                    buttonW, buttonH, buttonTexts[i], i, p));
+            j++;
+            if (j == maxButtonsPerLine) {
+                j = 0;
+                k++;
+            }
         }
+
+        p.noStroke();
     };
 
     p.draw = function () {
-        p.background(240);
-
-        if (!sorted && sorting) {
-            currentSortingFunc().next();
-        }
+        p.background(255);
 
         for (let i = 0; i < toSortArray.length; i++) {
-            toSortArray[i].x = marginx + w / 2 + i * (w + space);
-            toSortArray[i].draw(100);
+            let columnHeight = p.map(toSortArray[i], 0, arraySize - 1, 5, canvasH * 3 / 4);
+            p.rectMode(p.CORNER);
+            p.fill(160);
+            p.rect(i * rectWidth, canvasH, rectWidth, -columnHeight);
+        }
+
+        if (sorter != null) {
+            if (sorter.next().done) {
+                sorter = null;
+            }
         }
 
         for (let i = 0; i < buttons.length; i++) {
-            buttons[i].draw(200);
+            if (i === resetButtonIndex) {
+                buttons[i].draw(p.color(200, 200, 0));
+            } else if (i === shuffleButtonIndex) {
+                buttons[i].draw(p.color(0, 200, 0));
+            } else {
+                buttons[i].draw(200);
+            }
         }
+
+        p.text('Speed', sliderX - 40, sliderY + 7);
     };
+
+    p.shuffle = function (a) {
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+    }
 
     p.mouseClicked = function () {
         let i = p.getClickedButtonId(p.mouseX, p.mouseY);
-        if (i == -1 || i > sortingFuncs.length - 1) {
-            currentSortingFunc = null;
-            p.reset();
-        }
-        else {
-            currentSortingFunc = sortingFuncs[i];
-            sorting = true;
+        console.log(i);
+        if (i != -1) {
+            if (i === resetButtonIndex) {
+                p.reset();
+            } else if (i === shuffleButtonIndex) {
+                p.shuffle(originalArray);
+                p.reset();
+            } else {
+                sorter = sorters[i]();
+            }
         }
     };
 
@@ -80,60 +114,30 @@ let sortingVisualization = function (p) {
             }
         }
         return -1;
-    }
-
-    p.createRandomRecArray = function (count, startx, space) {
-        let array = new Array(count);
-        for (let i = 0; i < count; i++) {
-            array[i] = new Rec(w, maxH, startx + w / 2 + i * (w + space), bottomY, p);
-        }
-        return array;
     };
 
-    p.swap = function (array, i1, i2) {
-        let temp = array[i1];
-        array[i1] = array[i2];
-        array[i2] = temp;
-    }
-
     p.reset = function () {
-        toSortArray = defaultRandomArray.slice();
-        sorted = false;
-        sorting = false;
+        sorter = null;
+        toSortArray = originalArray.slice();
     };
 
     p.bubbleSort = function* () {
-        for (let j = toSortArray.length - 1; j > 0; j--) {
-            for (let i = 0; i < j; i++) {
-                if (toSortArray[i].h > toSortArray[i + 1].h) {
-                    p.swap(toSortArray, i, i + 1);
-                }
-                yield;
-            }
-        }
-        sorted = true;
-    };
-
-    p.selectionSort = function* () {
         let swapped;
-        let sortedCount = 0;
+        let loopCount = 0;
         do {
             swapped = false;
-            let currentSmallestIndex = sortedCount;
-            for (let i = sortedCount; i < toSortArray.length - 1; i++) {
-                if (toSortArray[i].h < toSortArray[currentSmallestIndex].h) {
-                    currentSmallestIndex = i;
+            for (let i = 0; i < toSortArray.length - 1; i++) {
+                if (toSortArray[i] > toSortArray[i + 1]) {
+                    [toSortArray[i], toSortArray[i + 1]] = [toSortArray[i + 1], toSortArray[i]];
                     swapped = true;
                 }
-            }
-            if (swapped) {
-                p.swap(toSortArray, sortedCount, currentSmallestIndex);
-                sortedCount++;
 
-                yield;
+                loopCount++;
+                if (loopCount % speedSlider.value() == 0) {
+                    yield;
+                }
             }
         } while (swapped);
-        sorted = true;
     };
 };
 
