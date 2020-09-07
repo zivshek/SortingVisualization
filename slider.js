@@ -2,8 +2,8 @@
 // copied from https://editor.p5js.org/Comissar/sketches/IHUYuzjR
 // fixed a bug that the spos starts from the middle of the slider
 
-function createCSlider(a, b, c, d, p5) {
-    r = new CSlider(a, b, c, d, p5);
+function createCSlider(p5, a, b, c, d) {
+    r = new CSlider(p5, a, b, c, d);
     return r;
 }
 
