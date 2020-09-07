@@ -27,15 +27,10 @@ class CSlider {
         this.loose = 1;
         this.over = false;
         this.locked = false;
-        this.scale = 1;
     }
 
     update() {
-        if (this.overEvent()) {
-            this.over = true;
-        } else {
-            this.over = false;
-        }
+        this.over = this.overEvent();
         if (this.p5.mouseIsPressed && this.over) {
             this.locked = true;
         }
@@ -43,7 +38,7 @@ class CSlider {
             this.locked = false;
         }
         if (this.locked) {
-            this.newspos = this.p5.constrain(this.p5.mouseX / this.scale - this.height / 2, this.sposMin, this.sposMax);
+            this.newspos = this.p5.constrain(this.p5.mouseX - this.height / 2, this.sposMin, this.sposMax);
             this.svalue = this.vmin + (this.vmax - this.vmin) * ((this.newspos - this.sposMin) / (this.sposMax - this.sposMin));
             if (this.vstep > 0) {
                 this.svalue = this.p5.constrain(this.vmin + this.p5.round((this.svalue - this.vmin) / this.vstep) * this.vstep, this.vmin, this.vmax);
@@ -56,8 +51,8 @@ class CSlider {
     }
 
     overEvent() {
-        if (this.p5.mouseX / this.scale > this.x && this.p5.mouseX / this.scale < this.x + this.width &&
-            this.p5.mouseY / this.scale > this.y && this.p5.mouseY / this.scale < this.y + this.height) {
+        if (this.p5.mouseX > this.x - this.width / 2 && this.p5.mouseX < this.x + this.width / 2 &&
+            this.p5.mouseY > this.y - this.height / 2 && this.p5.mouseY < this.y + this.height / 2) {
             return true;
         } else {
             return false;
@@ -84,10 +79,6 @@ class CSlider {
 
     value() {
         return this.svalue;
-    }
-
-    setScale(sc) {
-        this.scale = sc;
     }
 
     position(xp, yp) {

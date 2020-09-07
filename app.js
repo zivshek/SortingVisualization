@@ -32,10 +32,10 @@ let sortingVisualization = function (p) {
 
         speedSlider = createCSlider(p, 1, 100, 1, 1);
 
-        sorters.push(p.bubbleSort());
-        sorters.push(p.selectionSort());
-        sorters.push(p.insertionSort());
-        sorters.push(p.mergeSort(toSortArray));
+        sorters.push(p.bubbleSort);
+        sorters.push(p.selectionSort);
+        sorters.push(p.insertionSort);
+        sorters.push(p.mergeSort);
 
         let j = 0;
         let k = 0;
@@ -101,7 +101,7 @@ let sortingVisualization = function (p) {
                 p.shuffle(originalArray);
                 p.reset();
             } else {
-                sorter = sorters[i];
+                sorter = sorters[i]();
             }
         }
     };
@@ -116,7 +116,10 @@ let sortingVisualization = function (p) {
     };
 
     p.reset = function () {
-        sorter = null;
+        if (sorter != null) {
+            sorter.return();
+            sorter = null;
+        }
         toSortArray = originalArray.slice();
     };
 
@@ -128,7 +131,7 @@ let sortingVisualization = function (p) {
             swapped = false;
             for (let i = 0; i < toSortArray.length - 1 - sortedCount; i++) {
                 if (toSortArray[i] > toSortArray[i + 1]) {
-                    [toSortArray[i], toSortArray[i + 1]] = [toSortArray[i + 1], toSortArray[i]];
+                    p.swap(toSortArray, i, i + 1);
                     swapped = true;
                 }
 
@@ -156,7 +159,7 @@ let sortingVisualization = function (p) {
                 }
             }
             if (minIndex != i) {
-                [toSortArray[i], toSortArray[minIndex]] = [toSortArray[minIndex], toSortArray[i]];
+                p.swap(toSortArray, i, minIndex);
             }
         }
     };
@@ -166,7 +169,7 @@ let sortingVisualization = function (p) {
         for (let i = 0; i < toSortArray.length; i++) {
             let j = i + 1;
             while (j > 0 && toSortArray[j] < toSortArray[j - 1]) {
-                [toSortArray[j], toSortArray[j - 1]] = [toSortArray[j - 1], toSortArray[j]];
+                p.swap(toSortArray, j, j - 1);
                 j--;
                 loopCount++;
                 if (loopCount % speedSlider.value() == 0) {
@@ -176,26 +179,23 @@ let sortingVisualization = function (p) {
         }
     };
 
-    p.mergeSort = function* (a) {
-        let l = a.length;
-        if (l < 2) {
-            yield;
+    p.mergeSort = function* () {
+        for (let currSize = 1; currSize < toSortArray.length; currSize *= 2) {
+            for (let leftStart = 0; leftStart < toSortArray.length; leftStart += currSize * 2) {
+                let mid = leftStart + currSize;
+                let left = toSortArray.slice(leftStart, mid);
+                let right = toSortArray.slice(mid, mid + currSize);
+                yield* p.merge(left, right, leftStart, toSortArray);
+            }
         }
-
-        let mid = Math.round(l / 2);
-        let left = a.slice(0, mid);
-        let right = a.slice(mid, l);
-        yield p.mergeSort(left);
-        yield p.mergeSort(right);
-        p.merge(left, right, a);
     };
 
-    p.merge = function (left, right, a) {
+    p.merge = function* (left, right, start, a) {
         let nl = left.length;
         let nr = right.length;
         let il = 0;
         let ir = 0;
-        let ia = 0;
+        let ia = start;
         while (il < nl && ir < nr) {
             if (left[il] <= right[ir]) {
                 a[ia++] = left[il++];
@@ -203,15 +203,22 @@ let sortingVisualization = function (p) {
             else {
                 a[ia++] = right[ir++];
             }
+            yield;
         }
 
         while (il < nl) {
             a[ia++] = left[il++];
+            yield;
         }
 
         while (ir < nr) {
             a[ia++] = right[ir++];
+            yield;
         }
+    }
+
+    p.swap = function (arr, i, j) {
+        [arr[i], arr[j]] = [arr[j], arr[i]];
     }
 };
 
