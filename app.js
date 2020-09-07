@@ -5,7 +5,7 @@ let sortingVisualization = function (p) {
 
     let originalArray, toSortArray, rectWidth
     let sorter = null;
-    const arraySize = 100;
+    const arraySize = 200;
 
     const buttonTexts = ["Bubble sort", "Selection sort", "Insertion sort", "Merge sort", "Quick sort", "Heap sort", "Reset", "Shuffle"];
     const resetButtonIndex = buttonTexts.length - 2;
@@ -20,7 +20,7 @@ let sortingVisualization = function (p) {
     const buttonStartY = 2 * buttonSpacing + buttonH / 2;
 
     let speedSlider;
-    const sliderX = canvasW - 130;
+    const sliderX = canvasW - 80;
     const sliderY = (buttonH + buttonSpacing) * 2;
 
     p.setup = function () {
@@ -30,13 +30,12 @@ let sortingVisualization = function (p) {
         p.reset();
         rectWidth = canvasW / originalArray.length;
 
-        speedSlider = p.createSlider(1, 50, 1, 1);
+        speedSlider = createCSlider(p, 1, 100, 1, 1);
 
-        speedSlider.position(sliderX, sliderY);
-        console.log(sliderX);
-        speedSlider.style('width', '120px');
-
-        sorters.push(p.bubbleSort);
+        sorters.push(p.bubbleSort());
+        sorters.push(p.selectionSort());
+        sorters.push(p.insertionSort());
+        sorters.push(p.mergeSort(toSortArray));
 
         let j = 0;
         let k = 0;
@@ -60,7 +59,7 @@ let sortingVisualization = function (p) {
         p.background(255);
 
         for (let i = 0; i < toSortArray.length; i++) {
-            let columnHeight = p.map(toSortArray[i], 0, arraySize - 1, 5, canvasH * 3 / 4);
+            let columnHeight = p.map(toSortArray[i], 0, arraySize - 1, 1, canvasH * 3 / 4);
             p.rectMode(p.CORNER);
             p.fill(160);
             p.rect(i * rectWidth, canvasH, rectWidth, -columnHeight);
@@ -82,7 +81,8 @@ let sortingVisualization = function (p) {
             }
         }
 
-        p.text('Speed', sliderX - 40, sliderY + 7);
+        speedSlider.position(sliderX, sliderY);
+        p.text('Speed: ' + speedSlider.value(), sliderX - 110, sliderY + 5);
     };
 
     p.shuffle = function (a) {
@@ -94,7 +94,6 @@ let sortingVisualization = function (p) {
 
     p.mouseClicked = function () {
         let i = p.getClickedButtonId(p.mouseX, p.mouseY);
-        console.log(i);
         if (i != -1) {
             if (i === resetButtonIndex) {
                 p.reset();
@@ -102,7 +101,7 @@ let sortingVisualization = function (p) {
                 p.shuffle(originalArray);
                 p.reset();
             } else {
-                sorter = sorters[i]();
+                sorter = sorters[i];
             }
         }
     };
@@ -123,10 +122,11 @@ let sortingVisualization = function (p) {
 
     p.bubbleSort = function* () {
         let swapped;
+        let sortedCount = 0;
         let loopCount = 0;
         do {
             swapped = false;
-            for (let i = 0; i < toSortArray.length - 1; i++) {
+            for (let i = 0; i < toSortArray.length - 1 - sortedCount; i++) {
                 if (toSortArray[i] > toSortArray[i + 1]) {
                     [toSortArray[i], toSortArray[i + 1]] = [toSortArray[i + 1], toSortArray[i]];
                     swapped = true;
@@ -137,8 +137,82 @@ let sortingVisualization = function (p) {
                     yield;
                 }
             }
+
+            sortedCount++;
         } while (swapped);
     };
+
+    p.selectionSort = function* () {
+        let loopCount = 0;
+        for (let i = 0; i < toSortArray.length - 1; i++) {
+            let minIndex = i;
+            for (let j = i + 1; j < toSortArray.length; j++) {
+                if (toSortArray[minIndex] > toSortArray[j]) {
+                    minIndex = j;
+                }
+                loopCount++;
+                if (loopCount % speedSlider.value() == 0) {
+                    yield;
+                }
+            }
+            if (minIndex != i) {
+                [toSortArray[i], toSortArray[minIndex]] = [toSortArray[minIndex], toSortArray[i]];
+            }
+        }
+    };
+
+    p.insertionSort = function* () {
+        let loopCount = 0;
+        for (let i = 0; i < toSortArray.length; i++) {
+            let j = i + 1;
+            while (j > 0 && toSortArray[j] < toSortArray[j - 1]) {
+                [toSortArray[j], toSortArray[j - 1]] = [toSortArray[j - 1], toSortArray[j]];
+                j--;
+                loopCount++;
+                if (loopCount % speedSlider.value() == 0) {
+                    yield;
+                }
+            }
+        }
+    };
+
+    p.mergeSort = function* (a) {
+        let l = a.length;
+        if (l < 2) {
+            yield;
+        }
+
+        let mid = Math.round(l / 2);
+        let left = a.slice(0, mid);
+        let right = a.slice(mid, l);
+        yield p.mergeSort(left);
+        yield p.mergeSort(right);
+        p.merge(left, right, a);
+    };
+
+    p.merge = function (left, right, a) {
+        let nl = left.length;
+        let nr = right.length;
+        let il = 0;
+        let ir = 0;
+        let ia = 0;
+        while (il < nl && ir < nr) {
+            if (left[il] <= right[ir]) {
+                a[ia++] = left[il++];
+            }
+            else {
+                a[ia++] = right[ir++];
+            }
+        }
+
+        while (il < nl) {
+            a[ia++] = left[il++];
+        }
+
+        while (ir < nr) {
+            a[ia++] = right[ir++];
+        }
+    }
 };
 
 let sortingVisualizationP5 = new p5(sortingVisualization, window.document.getElementById('sorting'));

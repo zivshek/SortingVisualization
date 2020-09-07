@@ -1,0 +1,109 @@
+// ========== cslider.js ===========
+// copied from https://editor.p5js.org/Comissar/sketches/IHUYuzjR
+// fixed a bug that the spos starts from the middle of the slider
+
+function createCSlider(a, b, c, d, p5) {
+    r = new CSlider(a, b, c, d, p5);
+    return r;
+}
+
+class CSlider {
+    constructor(p5, min, max, value = (min + max) / 2, step = 1) {
+        this.p5 = p5;
+        this.width = 130;
+        this.height = 20;
+        this.widthtoheight = this.width - this.height;
+        this.ratio = this.width / this.widthtoheight;
+        this.x = 10;
+        this.y = -1000;
+        this.spos = this.x + this.width / 2 - this.height / 2;
+        this.newspos = this.spos;
+        this.sposMin = this.x - this.widthtoheight / 2;
+        this.sposMax = this.x + this.widthtoheight / 2;
+        this.vmin = min;
+        this.vmax = max;
+        this.svalue = this.p5.constrain(value, this.vmin, this.vmax);
+        this.vstep = step;
+        this.loose = 1;
+        this.over = false;
+        this.locked = false;
+        this.scale = 1;
+    }
+
+    update() {
+        if (this.overEvent()) {
+            this.over = true;
+        } else {
+            this.over = false;
+        }
+        if (this.p5.mouseIsPressed && this.over) {
+            this.locked = true;
+        }
+        if (!this.p5.mouseIsPressed) {
+            this.locked = false;
+        }
+        if (this.locked) {
+            this.newspos = this.p5.constrain(this.p5.mouseX / this.scale - this.height / 2, this.sposMin, this.sposMax);
+            this.svalue = this.vmin + (this.vmax - this.vmin) * ((this.newspos - this.sposMin) / (this.sposMax - this.sposMin));
+            if (this.vstep > 0) {
+                this.svalue = this.p5.constrain(this.vmin + this.p5.round((this.svalue - this.vmin) / this.vstep) * this.vstep, this.vmin, this.vmax);
+            }
+            this.newspos = this.x - this.widthtoheight / 2 + this.widthtoheight * ((this.svalue - this.vmin) / (this.vmax - this.vmin));
+        }
+        if (this.p5.abs(this.newspos - this.spos) > 1) {
+            this.spos = this.spos + (this.newspos - this.spos) / this.loose;
+        }
+    }
+
+    overEvent() {
+        if (this.p5.mouseX / this.scale > this.x && this.p5.mouseX / this.scale < this.x + this.width &&
+            this.p5.mouseY / this.scale > this.y && this.p5.mouseY / this.scale < this.y + this.height) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    display() {
+        this.p5.noStroke();
+        this.p5.fill(204);
+        this.p5.rect(this.x, this.y, this.width, this.height, 30);
+        if (this.over || this.locked) {
+            this.p5.fill(0, 0, 0);
+        } else {
+            this.p5.fill(102, 102, 102);
+        }
+        this.p5.rect(this.spos, this.y, this.height, this.height, 30);
+    }
+
+    getPos() {
+        // Convert spos to be values between
+        // 0 and the total width of the scrollbar
+        return this.spos * this.ratio;
+    }
+
+    value() {
+        return this.svalue;
+    }
+
+    setScale(sc) {
+        this.scale = sc;
+    }
+
+    position(xp, yp) {
+        this.x = xp;
+        this.y = yp;
+        if (this.vstep > 0) {
+            this.svalue = this.p5.constrain(this.vmin + this.p5.round((this.svalue - this.vmin) / this.vstep) * this.vstep, this.vmin, this.vmax);
+        }
+        this.spos = this.x - this.widthtoheight / 2 + this.widthtoheight * ((this.svalue - this.vmin) / (this.vmax - this.vmin));
+        //console.log(this.smin);
+        this.newspos = this.spos;
+        this.sposMin = this.x - this.widthtoheight / 2;
+        this.sposMax = this.x + this.widthtoheight / 2;
+        this.p5.push();
+        this.update();
+        this.display();
+        this.p5.pop();
+    }
+}
