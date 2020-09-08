@@ -1,6 +1,8 @@
 // ========== cslider.js ===========
 // copied from https://editor.p5js.org/Comissar/sketches/IHUYuzjR
-// fixed a bug that the spos starts from the middle of the slider
+// bug fixes from Hao
+// 1. fixed a bug that the spos starts from the middle of the slider
+// 2. fixed mouse over check is incorrect
 
 function createCSlider(p5, a, b, c, d) {
     r = new CSlider(p5, a, b, c, d);
@@ -29,8 +31,8 @@ class CSlider {
         this.locked = false;
     }
 
-    update() {
-        this.over = this.overEvent();
+    update(mouseX, mouseY) {
+        this.over = this.mouseOver(mouseX, mouseY);
         if (this.p5.mouseIsPressed && this.over) {
             this.locked = true;
         }
@@ -50,9 +52,9 @@ class CSlider {
         }
     }
 
-    overEvent() {
-        if (this.p5.mouseX > this.x - this.width / 2 && this.p5.mouseX < this.x + this.width / 2 &&
-            this.p5.mouseY > this.y - this.height / 2 && this.p5.mouseY < this.y + this.height / 2) {
+    mouseOver(x, y) {
+        if (x > this.x - this.width / 2 && x < this.x + this.width / 2 &&
+            y > this.y - this.height / 2 && y < this.y + this.height / 2) {
             return true;
         } else {
             return false;
@@ -81,7 +83,7 @@ class CSlider {
         return this.svalue;
     }
 
-    position(xp, yp) {
+    position(xp, yp, mouseX = this.p5.mouseX, mouseY = this.p5.mouseY) {
         this.x = xp;
         this.y = yp;
         if (this.vstep > 0) {
@@ -93,7 +95,7 @@ class CSlider {
         this.sposMin = this.x - this.widthtoheight / 2;
         this.sposMax = this.x + this.widthtoheight / 2;
         this.p5.push();
-        this.update();
+        this.update(mouseX, mouseY);
         this.display();
         this.p5.pop();
     }

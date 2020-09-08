@@ -36,6 +36,7 @@ let sortingVisualization = function (p) {
         sorters.push(p.selectionSort);
         sorters.push(p.insertionSort);
         sorters.push(p.mergeSort);
+        sorters.push(p.quickSort);
 
         let j = 0;
         let k = 0;
@@ -147,6 +148,7 @@ let sortingVisualization = function (p) {
 
     p.selectionSort = function* () {
         let loopCount = 0;
+
         for (let i = 0; i < toSortArray.length - 1; i++) {
             let minIndex = i;
             for (let j = i + 1; j < toSortArray.length; j++) {
@@ -196,30 +198,91 @@ let sortingVisualization = function (p) {
         let il = 0;
         let ir = 0;
         let ia = start;
+        let loopCount = 0;
         while (il < nl && ir < nr) {
+            loopCount++;
             if (left[il] <= right[ir]) {
                 a[ia++] = left[il++];
             }
             else {
                 a[ia++] = right[ir++];
             }
-            yield;
+            if (loopCount % speedSlider.value() == 0) {
+                yield;
+            }
         }
 
         while (il < nl) {
+            loopCount++;
             a[ia++] = left[il++];
-            yield;
+            if (loopCount % speedSlider.value() == 0) {
+                yield;
+            }
         }
 
         while (ir < nr) {
+            loopCount++;
             a[ia++] = right[ir++];
-            yield;
+            if (loopCount % speedSlider.value() == 0) {
+                yield;
+            }
         }
     }
 
+    p.quickSort = function* () {
+        let start = 0;
+        let end = toSortArray.length - 1;
+        let stack = new Array(end - start + 1);
+        let top = -1;
+        stack[++top] = start;
+        stack[++top] = end;
+        let loopCount = 0;
+        while (top >= 0) {
+            end = stack[top--];
+            start = stack[top--];
+
+            let pivot = start;
+            let i = start;
+            let j = end + 1;
+            while (i < j) {
+                do {
+                    i++;
+                    loopCount++;
+                    if (loopCount % speedSlider.value() == 0) {
+                        yield;
+                    }
+                } while (toSortArray[i] <= toSortArray[pivot]);
+
+                do {
+                    j--;
+                    loopCount++;
+                    if (loopCount % speedSlider.value() == 0) {
+                        yield;
+                    }
+                } while (toSortArray[j] > toSortArray[pivot]);
+
+                if (i < j) {
+                    p.swap(toSortArray, i, j);
+                }
+            }
+            p.swap(toSortArray, pivot, j);
+            pivot = j;
+
+            if (pivot - start > 1) {
+                stack[++top] = start;
+                stack[++top] = pivot - 1;
+            }
+
+            if (end - pivot > 1) {
+                stack[++top] = pivot + 1;
+                stack[++top] = end;
+            }
+        }
+    };
+
     p.swap = function (arr, i, j) {
         [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
+    };
 };
 
 let sortingVisualizationP5 = new p5(sortingVisualization, window.document.getElementById('sorting'));
