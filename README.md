@@ -1,3 +1,5 @@
 # Sorting Algorithms Visualization
 
-For now there is only bubble sort
+Visualize a collection of sorting algorithms.
+
+![](assets/sorting_visualization.gif)
