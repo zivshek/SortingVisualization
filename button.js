@@ -6,7 +6,7 @@ class CustomButton {
         this.w = w;
         this.h = h;
         this.text = text;
-        this.fontColor = 'rgb(52, 66, 145)';
+        this.fontColor = p5.color(52, 66, 145);
         this.p5 = p5;
         this.id = id;
     }
@@ -17,12 +17,15 @@ class CustomButton {
     }
 
     draw(color) {
+        this.p5.push();
+        this.p5.noStroke();
         this.p5.rectMode(this.p5.CENTER);
         this.p5.fill(color);
         this.p5.rect(this.x, this.y, this.w, this.h, 10);
         this.p5.textSize(15);
         this.p5.fill(this.fontColor);
-        this.p5.text(this.text, this.x, this.y + this.h / 5);
         this.p5.textAlign(this.p5.CENTER);
+        this.p5.text(this.text, this.x, this.y + this.h / 5);
+        this.p5.pop();
     }
 }

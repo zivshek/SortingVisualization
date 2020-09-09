@@ -23,6 +23,13 @@ let sortingVisualization = function (p) {
     const sliderX = canvasW - 80;
     const sliderY = (buttonH + buttonSpacing) * 2;
 
+    let popup;
+    let popupFont;
+
+    p.preload = function () {
+        popupFont = p.loadFont('assets/Arial.otf');
+    }
+
     p.setup = function () {
         p.createCanvas(canvasW, canvasH);
         originalArray = Array.from(Array(arraySize), (_, i) => i);
@@ -54,12 +61,16 @@ let sortingVisualization = function (p) {
             }
         }
 
+        popup = new Popup(p, canvasW / 2, canvasH / 2, popupFont);
+
         p.noStroke();
     };
 
     p.draw = function () {
+        p.clear();
         p.background(255);
 
+        p.push();
         for (let i = 0; i < toSortArray.length; i++) {
             let columnHeight = p.map(toSortArray[i], 0, arraySize - 1, 1, canvasH * 3 / 4);
             p.rectMode(p.CORNER);
@@ -84,7 +95,14 @@ let sortingVisualization = function (p) {
         }
 
         speedSlider.position(sliderX, sliderY);
+        p.textAlign(p.CENTER);
+        p.textSize(15);
+        p.fill(p.color(52, 66, 145));
         p.text('Speed: ' + speedSlider.value(), sliderX - 110, sliderY + 5);
+        p.pop();
+
+        popup.update();
+        popup.draw();
     };
 
     p.shuffle = function (a) {
@@ -103,6 +121,11 @@ let sortingVisualization = function (p) {
                 p.shuffle(originalArray);
                 p.reset();
             } else {
+                if (sorter != null) {
+                    popup.setMsg(buttonTexts[i] + " is running...");
+                    popup.start();
+                    return;
+                }
                 sorter = sorters[i]();
             }
         }
@@ -198,14 +221,13 @@ let sortingVisualization = function (p) {
         let ia = start;
         let loopCount = 0;
         while (il < nl && ir < nr) {
-            loopCount++;
             if (left[il] <= right[ir]) {
                 a[ia++] = left[il++];
             }
             else {
                 a[ia++] = right[ir++];
             }
-            if (loopCount % speedSlider.value() == 0) {
+            if (++loopCount % speedSlider.value() == 0) {
                 yield;
             }
         }

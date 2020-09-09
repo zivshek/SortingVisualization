@@ -1,8 +1,6 @@
 // ========== cslider.js ===========
 // copied from https://editor.p5js.org/Comissar/sketches/IHUYuzjR
-// bug fixes from Hao
-// 1. fixed a bug that the spos starts from the middle of the slider
-// 2. fixed mouse over check is incorrect
+// switched rectMode to CENTER, don't ask me why
 
 function createCSlider(p5, a, b, c, d) {
     r = new CSlider(p5, a, b, c, d);
@@ -63,6 +61,7 @@ class CSlider {
 
     display() {
         this.p5.noStroke();
+        this.p5.rectMode(this.p5.CENTER);
         this.p5.fill(204);
         this.p5.rect(this.x, this.y, this.width, this.height, 30);
         if (this.over || this.locked) {
