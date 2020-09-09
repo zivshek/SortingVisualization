@@ -5,6 +5,7 @@ let sortingVisualization = function (p) {
 
     let originalArray, toSortArray, rectWidth
     let sorter = null;
+    let sorterIndex = -1;
     const arraySize = 200;
 
     const buttonTexts = ["Bubble sort", "Selection sort", "Insertion sort", "Merge sort", "Quick sort", "Heap sort", "Reset", "Shuffle"];
@@ -122,10 +123,11 @@ let sortingVisualization = function (p) {
                 p.reset();
             } else {
                 if (sorter != null) {
-                    popup.setMsg(buttonTexts[i] + " is running...");
+                    popup.setMsg(buttonTexts[sorterIndex] + " is running...");
                     popup.start();
                     return;
                 }
+                sorterIndex = i;
                 sorter = sorters[i]();
             }
         }
@@ -144,6 +146,7 @@ let sortingVisualization = function (p) {
         if (sorter != null) {
             sorter.return();
             sorter = null;
+            sorterIndex = -1;
         }
         toSortArray = originalArray.slice();
     };
