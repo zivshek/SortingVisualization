@@ -1,6 +1,6 @@
 // ========== cslider.js ===========
 // copied from https://editor.p5js.org/Comissar/sketches/IHUYuzjR
-// bug fixes from Hao
+// bug fixes:
 // 1. fixed a bug that the spos starts from the middle of the slider
 // 2. fixed mouse over check is incorrect
 
