@@ -26,6 +26,8 @@ let sortingVisualization = function (p) {
 
     let popup;
     let popupFont;
+    
+    let loopCount = 0;
 
     p.preload = function () {
         popupFont = p.loadFont('assets/Arial.otf');
@@ -149,12 +151,12 @@ let sortingVisualization = function (p) {
             sorterIndex = -1;
         }
         toSortArray = originalArray.slice();
+        loopCount = 0;
     };
 
     p.bubbleSort = function* () {
         let swapped;
         let sortedCount = 0;
-        let loopCount = 0;
         do {
             swapped = false;
             for (let i = 0; i < toSortArray.length - 1 - sortedCount; i++) {
@@ -173,8 +175,6 @@ let sortingVisualization = function (p) {
     };
 
     p.selectionSort = function* () {
-        let loopCount = 0;
-
         for (let i = 0; i < toSortArray.length - 1; i++) {
             let minIndex = i;
             for (let j = i + 1; j < toSortArray.length; j++) {
@@ -192,7 +192,6 @@ let sortingVisualization = function (p) {
     };
 
     p.insertionSort = function* () {
-        let loopCount = 0;
         for (let i = 0; i < toSortArray.length; i++) {
             let j = i + 1;
             while (j > 0 && toSortArray[j] < toSortArray[j - 1]) {
@@ -222,7 +221,6 @@ let sortingVisualization = function (p) {
         let il = 0;
         let ir = 0;
         let ia = start;
-        let loopCount = 0;
         while (il < nl && ir < nr) {
             if (left[il] <= right[ir]) {
                 a[ia++] = left[il++];
@@ -257,7 +255,6 @@ let sortingVisualization = function (p) {
         let top = -1;
         stack[++top] = start;
         stack[++top] = end;
-        let loopCount = 0;
         while (top >= 0) {
             end = stack[top--];
             start = stack[top--];
@@ -300,13 +297,37 @@ let sortingVisualization = function (p) {
     };
 
     p.heapSort = function* () {
+        let n = toSortArray.length;
+        for (let i = Math.floor(n / 2 - 1); i >= 0; i--) {
+            yield* p.maxHeapify(toSortArray, n, i);
+        }
 
+        for (let i = n - 1; i > 0; i--) {
+            if (++loopCount % speedSlider.value() == 0) {
+                yield;
+            }
+            p.swap(toSortArray, 0, i);
+            yield* p.maxHeapify(toSortArray, i, 0);
+        }
     };
 
-    p.maxHeapify = function (arr, i) {
-        let n = arr.length;
+    p.maxHeapify = function* (arr, n, i) {
         let largest = i;
-
+        let l = i * 2 + 1;
+        let r = i * 2 + 2;
+        if (l < n && arr[l] > arr[largest]) {
+            largest = l;
+        }
+        if (r < n && arr[r] > arr[largest]) {
+            largest = r;
+        }
+        if (largest != i) {
+            if (++loopCount % speedSlider.value() == 0) {
+                yield;
+            }
+            p.swap(arr, i, largest);
+            yield* p.maxHeapify(arr, n, largest);
+        }
     };
 
     p.swap = function (arr, i, j) {
