@@ -2,12 +2,9 @@ class Popup {
     constructor(p5, x, y, font, timer = 2000) { // 2 secs
         this.msg = 'N/A';
         this._timer = timer;
-        this.timer = timer;
         this.p5 = p5;
         this.x = x;
         this.y = y;
-        this.w = 100;
-        this.h = 50;
         this.alpha = 0;
         this.active = false;
         this.fontSize = 25;

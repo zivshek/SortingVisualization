@@ -303,6 +303,12 @@ let sortingVisualization = function (p) {
 
     };
 
+    p.maxHeapify = function (arr, i) {
+        let n = arr.length;
+        let largest = i;
+
+    };
+
     p.swap = function (arr, i, j) {
         [arr[i], arr[j]] = [arr[j], arr[i]];
     };
