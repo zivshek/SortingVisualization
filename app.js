@@ -298,7 +298,7 @@ let sortingVisualization = function (p) {
 
     p.heapSort = function* () {
         let n = toSortArray.length;
-        for (let i = Math.floor(n / 2 - 1); i >= 0; i--) {
+        for (let i = Math.floor((n - 1) / 2); i >= 0; i--) {
             yield* p.maxHeapify(toSortArray, n, i);
         }
 
