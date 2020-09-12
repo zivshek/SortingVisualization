@@ -3,12 +3,13 @@ const canvasH = 600;
 
 let sortingVisualization = function (p) {
 
-    let originalArray, toSortArray, rectWidth
+    let originalArray, toSortArray, sortedArray, flags;
+    let rectWidth;
     let sorter = null;
     let sorterIndex = -1;
     const arraySize = 200;
 
-    const buttonTexts = ["Bubble sort", "Selection sort", "Insertion sort", "Merge sort", "Quick sort", "Heap sort", "Reset", "Shuffle"];
+    const buttonTexts = ["Bubble sort", "Selection sort", "Insertion sort", "Merge sort", "Quick sort", "Heap sort", "Radix sort", "Reset", "Shuffle"];
     const resetButtonIndex = buttonTexts.length - 2;
     const shuffleButtonIndex = buttonTexts.length - 1;
     let buttons = [];
@@ -17,17 +18,22 @@ let sortingVisualization = function (p) {
     const buttonH = 30;
     const buttonSpacing = 10;
     const maxButtonsPerLine = Math.floor((canvasW - 2 * buttonSpacing) / buttonW);
+    const linesOfButtons = Math.ceil(buttonTexts.length / maxButtonsPerLine);
     const buttonStartX = buttonW / 2;
     const buttonStartY = 2 * buttonSpacing + buttonH / 2;
+    const buttonAreaEnd = (buttonH + buttonSpacing) * linesOfButtons + buttonStartY;
 
     let speedSlider;
     const sliderX = canvasW - 80;
-    const sliderY = (buttonH + buttonSpacing) * 2;
+    const sliderY = buttonAreaEnd;
+
+    const safeArea = canvasH - sliderY;
 
     let popup;
     let popupFont;
-    
+
     let loopCount = 0;
+    let speed;
 
     p.preload = function () {
         popupFont = p.loadFont('assets/Arial.otf');
@@ -35,7 +41,8 @@ let sortingVisualization = function (p) {
 
     p.setup = function () {
         p.createCanvas(canvasW, canvasH);
-        originalArray = Array.from(Array(arraySize), (_, i) => i);
+        sortedArray = Array.from(Array(arraySize), (_, i) => i);
+        originalArray = sortedArray.slice();
         p.shuffle(originalArray);
         p.reset();
         rectWidth = canvasW / originalArray.length;
@@ -48,6 +55,7 @@ let sortingVisualization = function (p) {
         sorters.push(p.mergeSort);
         sorters.push(p.quickSort);
         sorters.push(p.heapSort);
+        sorters.push(p.radixSort);
 
         let j = 0;
         let k = 0;
@@ -65,8 +73,6 @@ let sortingVisualization = function (p) {
         }
 
         popup = new Popup(p, canvasW / 2, canvasH / 2, popupFont);
-
-        p.noStroke();
     };
 
     p.draw = function () {
@@ -74,12 +80,18 @@ let sortingVisualization = function (p) {
         p.background(255);
 
         p.push();
+        p.noStroke();
+        p.rectMode(p.CORNER);
         for (let i = 0; i < toSortArray.length; i++) {
-            let columnHeight = p.map(toSortArray[i], 0, arraySize - 1, 1, canvasH * 3 / 4);
-            p.rectMode(p.CORNER);
-            p.fill(160);
+            let columnHeight = p.map(toSortArray[i], 0, arraySize - 1, 1, safeArea * 7 / 8);
+            if (flags[i]) {
+                p.fill(p.color(50, 200, 50));
+            } else {
+                p.fill(160);
+            }
             p.rect(i * rectWidth, canvasH, rectWidth, -columnHeight);
         }
+        p.pop();
 
         if (sorter != null) {
             if (sorter.next().done) {
@@ -98,10 +110,12 @@ let sortingVisualization = function (p) {
         }
 
         speedSlider.position(sliderX, sliderY);
+        speed = speedSlider.value();
+        p.push();
         p.textAlign(p.CENTER);
         p.textSize(15);
         p.fill(p.color(52, 66, 145));
-        p.text('Speed: ' + speedSlider.value(), sliderX - 110, sliderY + 5);
+        p.text('Speed: ' + speed, sliderX - 110, sliderY + 5);
         p.pop();
 
         popup.update();
@@ -151,7 +165,12 @@ let sortingVisualization = function (p) {
             sorterIndex = -1;
         }
         toSortArray = originalArray.slice();
+        flags = new Array(arraySize).fill(false);
         loopCount = 0;
+    };
+
+    p.setFlag = function (i) {
+        flags[i] = true;
     };
 
     p.bubbleSort = function* () {
@@ -159,18 +178,27 @@ let sortingVisualization = function (p) {
         let sortedCount = 0;
         do {
             swapped = false;
-            for (let i = 0; i < toSortArray.length - 1 - sortedCount; i++) {
+            let end = toSortArray.length - 1 - sortedCount;
+            for (let i = 0; i < end; i++) {
                 if (toSortArray[i] > toSortArray[i + 1]) {
                     p.swap(toSortArray, i, i + 1);
                     swapped = true;
                 }
+                if (i === end - 1) {
+                    p.setFlag(i + 1);
+                }
 
-                if (++loopCount % speedSlider.value() == 0) {
+                if (++loopCount % speed == 0) {
                     yield;
                 }
             }
-
-            sortedCount++;
+            if (!swapped) {
+                for (let i = 0; i < toSortArray.length - sortedCount; i++) {
+                    p.setFlag(i);
+                }
+            } else {
+                sortedCount++;
+            }
         } while (swapped);
     };
 
@@ -180,14 +208,17 @@ let sortingVisualization = function (p) {
             for (let j = i + 1; j < toSortArray.length; j++) {
                 if (toSortArray[minIndex] > toSortArray[j]) {
                     minIndex = j;
+                } else {
+                    p.setFlag(j);
                 }
-                if (++loopCount % speedSlider.value() == 0) {
+                if (++loopCount % speed == 0) {
                     yield;
                 }
             }
             if (minIndex != i) {
                 p.swap(toSortArray, i, minIndex);
             }
+            p.setFlag(minIndex);
         }
     };
 
@@ -197,10 +228,17 @@ let sortingVisualization = function (p) {
             while (j > 0 && toSortArray[j] < toSortArray[j - 1]) {
                 p.swap(toSortArray, j, j - 1);
                 j--;
-                if (++loopCount % speedSlider.value() == 0) {
+                if (++loopCount % speed == 0) {
                     yield;
                 }
             }
+        }
+        // Can't really visualize the sorted elements, 
+        // since we won't know if it's sorted for certain until we reach the end
+        // one option is we sort it immediately and record the actions,
+        // then we can know when an element is definitely sorted, but I'm not gonna bother
+        for (let i = 0; i < flags.length; i++) {
+            p.setFlag(i);
         }
     };
 
@@ -228,21 +266,30 @@ let sortingVisualization = function (p) {
             else {
                 a[ia++] = right[ir++];
             }
-            if (++loopCount % speedSlider.value() == 0) {
+            if (nl + nr === a.length) {
+                p.setFlag(ia - 1);
+            }
+            if (++loopCount % speed == 0) {
                 yield;
             }
         }
 
         while (il < nl) {
             a[ia++] = left[il++];
-            if (++loopCount % speedSlider.value() == 0) {
+            if (nl + nr === a.length) {
+                p.setFlag(ia - 1);
+            }
+            if (++loopCount % speed == 0) {
                 yield;
             }
         }
 
         while (ir < nr) {
             a[ia++] = right[ir++];
-            if (++loopCount % speedSlider.value() == 0) {
+            if (nl + nr === a.length) {
+                p.setFlag(ia - 1);
+            }
+            if (++loopCount % speed == 0) {
                 yield;
             }
         }
@@ -265,14 +312,14 @@ let sortingVisualization = function (p) {
             while (i < j) {
                 do {
                     i++;
-                    if (++loopCount % speedSlider.value() == 0) {
+                    if (++loopCount % speed == 0) {
                         yield;
                     }
                 } while (toSortArray[i] <= toSortArray[pivot]);
 
                 do {
                     j--;
-                    if (++loopCount % speedSlider.value() == 0) {
+                    if (++loopCount % speed == 0) {
                         yield;
                     }
                 } while (toSortArray[j] > toSortArray[pivot]);
@@ -283,15 +330,20 @@ let sortingVisualization = function (p) {
             }
             p.swap(toSortArray, pivot, j);
             pivot = j;
+            p.setFlag(pivot);
 
             if (pivot - start > 1) {
                 stack[++top] = start;
                 stack[++top] = pivot - 1;
+            } else {
+                p.setFlag(pivot - 1);
             }
 
             if (end - pivot > 1) {
                 stack[++top] = pivot + 1;
                 stack[++top] = end;
+            } else {
+                p.setFlag(pivot + 1);
             }
         }
     };
@@ -303,10 +355,11 @@ let sortingVisualization = function (p) {
         }
 
         for (let i = n - 1; i > 0; i--) {
-            if (++loopCount % speedSlider.value() == 0) {
+            if (++loopCount % speed == 0) {
                 yield;
             }
             p.swap(toSortArray, 0, i);
+            p.setFlag(i);
             yield* p.maxHeapify(toSortArray, i, 0);
         }
     };
@@ -322,12 +375,16 @@ let sortingVisualization = function (p) {
             largest = r;
         }
         if (largest != i) {
-            if (++loopCount % speedSlider.value() == 0) {
+            if (++loopCount % speed == 0) {
                 yield;
             }
             p.swap(arr, i, largest);
             yield* p.maxHeapify(arr, n, largest);
         }
+    };
+
+    p.radixSort = function* () {
+
     };
 
     p.swap = function (arr, i, j) {
