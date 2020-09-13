@@ -384,7 +384,38 @@ let sortingVisualization = function (p) {
     };
 
     p.radixSort = function* () {
+        // we know the maximum digits of a number is 3, so I'm not gonna go over the array just to calculate that
+        for (let i = 0; i < 3; i++) {
+            let counts = new Array(10).fill(0);
 
+            for (let j = 0; j < toSortArray.length; j++) {
+                let digit = p.getNthDigit(toSortArray[j], i);
+                counts[digit]++;
+            }
+
+            for (let k = 1; k < counts.length; k++) {
+                counts[k] = counts[k] + counts[k - 1];
+            }
+
+            let tempArray = toSortArray.slice(); // we can actually reuse this array, but this is easier to write
+            for (let j = tempArray.length - 1; j >= 0; j--) {
+                let digit = p.getNthDigit(tempArray[j], i);
+                let index = counts[digit] - 1;
+                toSortArray[index] = tempArray[j];
+                if (i == 2) {
+                    p.setFlag(toSortArray[index]);
+                }
+                counts[digit]--;
+                if (++loopCount % speed == 0) {
+                    yield;
+                }
+            }
+        }
+    };
+
+    // n starts from 0 and from right to left
+    p.getNthDigit = function (num, n) {
+        return Math.floor(num / Math.pow(10, n)) - Math.floor(num / Math.pow(10, n + 1)) * 10;
     };
 
     p.swap = function (arr, i, j) {
