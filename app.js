@@ -203,13 +203,11 @@ let sortingVisualization = function (p) {
     };
 
     p.selectionSort = function* () {
-        for (let i = 0; i < toSortArray.length - 1; i++) {
+        for (let i = 0; i < toSortArray.length; i++) {
             let minIndex = i;
             for (let j = i + 1; j < toSortArray.length; j++) {
                 if (toSortArray[minIndex] > toSortArray[j]) {
                     minIndex = j;
-                } else {
-                    p.setFlag(j);
                 }
                 if (++loopCount % speed == 0) {
                     yield;
@@ -218,7 +216,7 @@ let sortingVisualization = function (p) {
             if (minIndex != i) {
                 p.swap(toSortArray, i, minIndex);
             }
-            p.setFlag(minIndex);
+            p.setFlag(i);
         }
     };
 
