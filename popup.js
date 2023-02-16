@@ -22,6 +22,7 @@ class Popup {
         let bounds = this.font.textBounds(msg, this.x, this.y, this.fontSize);
         this.w = bounds.w + 30;
         this.h = bounds.h + 30;
+        return this;
     }
 
     start() {

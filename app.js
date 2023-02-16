@@ -139,8 +139,7 @@ let sortingVisualization = function (p) {
                 p.reset();
             } else {
                 if (sorter != null) {
-                    popup.setMsg(buttonTexts[sorterIndex] + " is running...");
-                    popup.start();
+                    popup.setMsg(buttonTexts[sorterIndex] + " is running...").start();
                     return;
                 }
                 sorterIndex = i;
