@@ -104,6 +104,8 @@ let sortingVisualization = function (p) {
                 buttons[i].draw(p.color(200, 200, 0));
             } else if (i === shuffleButtonIndex) {
                 buttons[i].draw(p.color(0, 200, 0));
+            } else if (i === sorterIndex) {
+                buttons[i].draw(p.color(0, 100, 100));
             } else {
                 buttons[i].draw(200);
             }
